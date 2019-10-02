@@ -42,6 +42,8 @@ def get_likelihood(data, dist_type, theta):
 def metropolis_hastings(iterations, data, data_dist_type, theta_prior_dist, theta, sigma):
 	guessed = [];
 	accepted = [];
+
+	#computer the posterior
 	prev_posterior = theta_prior_dist.pdf_pmf(theta) * get_likelihood(data, data_dist_type, [theta]);
 	proposal_dist = Distribution('Normal', [theta, sigma]);
 
@@ -51,9 +53,13 @@ def metropolis_hastings(iterations, data, data_dist_type, theta_prior_dist, thet
 
 		#compute new posterior value based on prior and guessed theta value
 		new_posterior = theta_prior_dist.pdf_pmf(theta_guess) * get_likelihood(data, data_dist_type, [theta_guess]);
+
+		#compare new posterior wiht previous one
 		post_ratio = new_posterior/prev_posterior;
 		reject_threshold = min(post_ratio, 1);
 		reject_check = random.random();
+
+		#if new posterior is larger, accept it. if not, accept with probability equal to ratio of posteriors
 		if reject_check < reject_threshold:
 			theta = theta_guess;
 			accepted.append(theta);
@@ -66,6 +72,8 @@ def metropolis_hastings(iterations, data, data_dist_type, theta_prior_dist, thet
 	plt.figure(1);
 	plt.clf();
 	plt.hist(accepted, bins=50, density=True);
+
+	#print histogram
 	plt.title('Posterior Distribution w/ Metropolis Hastings');
 	xmin, xmax = plt.xlim();
 	x = np.linspace(xmin, xmax, 100);
@@ -91,6 +99,7 @@ def simulated_annealing(iterations, data, data_dist_type, theta_prior_dist, thet
 		#create annealing schedule
 		T = float(iterations - i) * 10**(-10);
 		
+		# as time increases, probability of accepting smaller values decreases
 		if (d_E > 0) or (math.exp(d_E/T) > random.random()):
 			theta = theta_guess;
 			accepted.append(theta);
